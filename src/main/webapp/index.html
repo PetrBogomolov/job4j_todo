@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bootstrap Example</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<script>
+    function validate() {
+        let message = '* - обязательные для заполнения поля'
+        let description = $('#description').val();
+        if (description === '') {
+            alert(message);
+            return false;
+        }
+        return true;
+    }
+
+    $(document).ready(function () {
+        const req = $.ajax({
+            type: "POST",
+            url: './showFilter',
+            dataType: "json"
+        })
+        req.done(function (data) {
+            let items = ""
+            for (let i = 0; i < data.length; i++) {
+                items += "<tr>"
+                    + "<td>" + data[i]["id"] + "</td>"
+                    + "<td>" + data[i]["description"] + "</td>"
+                    + "<td>" + data[i]["created"] + "</td>"
+                    + "<td>" + "Необходимо выполнить  "
+                    + "<input type='checkbox' id='setStatus' value=" + data[i]["id"] + ">"
+                    + "</td>"
+                    + "</tr>"
+            }
+            $('#items').html(items);
+            $('input:checked:not(:disabled)').each(function () {
+                for (let i = 0; i < data.length; i++) {
+                    $('#items').append(
+                        "<tr>"
+                        + "<td>" + data[i]["description"] + "</td>"
+                        + "<td>" + data[i]["created"] + "</td>"
+                        + "<td>" + "Выполнено  "
+                        + "<input disabled type='checkbox' id='setStatus' checked value=" + data[i]["id"] + ">"
+                        + "</td>"
+                        + "</tr>");
+                }
+            });
+        });
+        $('#items').html(items);
+    })
+
+    function addItem() {
+        if (validate()) {
+            $.ajax({
+                    method: 'POST',
+                    url: './add',
+                    data: {desc: $("#description").val()},
+                    dataType: 'json'
+                }
+            );
+        }
+        location.reload()
+    }
+
+    function getSelectedValues() {
+        let selectedValues =[]
+        $('input[id=setStatus]:checked:not(:disabled)').each(function(i,e){
+            selectedValues.push($(e).attr('value') )
+        })
+        return selectedValues;
+    }
+
+    function markAsDone() {
+        let selectedValues = getSelectedValues()
+        if (selectedValues.length > 0) {
+            for (let i = 0; i < selectedValues.length; i++) {
+                $.ajax({
+                    method: 'POST',
+                    url: './done',
+                    data: {id: selectedValues[i]},
+                    dataType: 'json'
+                });
+            }
+            location.reload()
+        } else {
+            alert("Необходмио выбрать задания")
+        }
+    }
+
+    function showAll() {
+        $(document).ready(function () {
+            const req = $.ajax({
+                type: "POST",
+                url: "./showAll",
+                dataType: "json"
+            })
+            req.done(function (data) {
+                let items = ""
+                for (let i = 0; i < data.length; i++) {
+                    items += "<tr>"
+                        + "<td>" + data[i]["id"] + "</td>"
+                        + "<td>" + data[i]["description"] + "</td>"
+                        + "<td>" + data[i]["created"] + "</td>"
+                        + "<td>" + data[i]["done"] + "</td>"
+                        + "</td>"
+                        + "</tr>"
+                }
+                $('#items').html(items);
+            })
+        })
+    }
+</script>
+<body>
+<div class="container-fluid" style="text-align: center">
+    <h1>Ежедневник </h1>
+</div>
+<div class="container pt-3">
+    <div class="row">
+        <div class="card" style="width: 100%">
+            <div class="card-header">
+                Добавление задачи
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        <label for="description" style="font-weight: bold">Описание</label>
+                        <input type="text" class="form-control" id="description" placeholder="* - Добавьте описания задачи...">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addItem()">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="card" style="width: 100%">
+            <div class="card-body">
+                <form>
+                    <h4>Ваши задачи</h4>
+                    <p><label>
+                        <button type="button" class="btn btn-primary" onclick="showAll()">Показать все задачи</button>
+                    </label> </p>
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Описание</th>
+                            <th>Дата создания</th>
+                            <th>Статус</th>
+                        </tr>
+                        </thead>
+                        <tbody id="items"></tbody>
+                    </table>
+                    <button type="button" class="btn btn-primary" onclick="markAsDone()">Отметить как выполненные</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
