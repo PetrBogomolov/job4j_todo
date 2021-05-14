@@ -8,6 +8,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import ru.job4j.todo.model.Item;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class HibernateStore implements Store {
     private final StandardServiceRegistry registry = new StandardServiceRegistryBuilder().configure().build();
@@ -23,44 +24,36 @@ public class HibernateStore implements Store {
 
     @Override
     public void addItem(Item item) {
-        try (Session session = sf.openSession()) {
-            session.beginTransaction();
-            session.save(item);
-            session.getTransaction().commit();
-        }
+        transaction(session -> session.save(item));
     }
 
     @Override
     public void noteItemAsDone(int id) {
-        try (Session session = sf.openSession()) {
-            session.beginTransaction();
+        transaction(session -> {
             Item itemdb = session.get(Item.class, id);
             if (itemdb != null) {
                 itemdb.setDone(true);
             }
-            session.getTransaction().commit();
-        }
+            return null;
+        });
     }
 
     @Override
     public List<Item> getAllItems() {
-        List items;
-        try (Session session = sf.openSession()) {
-            session.beginTransaction();
-            items = session.createQuery("from Item").list();
-            session.getTransaction().commit();
-        }
-        return items;
+        return (List<Item>) transaction(session -> session.createQuery("from Item").list());
     }
 
     @Override
     public List<Item> getAllNotDoneItems() {
-        List items;
+        return (List<Item>) transaction(session -> session.createQuery("from Item i where i.done = false").list());
+    }
+
+    private <T> T transaction(Function<Session, T> command) {
         try (Session session = sf.openSession()) {
             session.beginTransaction();
-            items = session.createQuery("from Item i where i.done = false").list();
+            T result = command.apply(session);
             session.getTransaction().commit();
+            return result;
         }
-        return items;
     }
 }
