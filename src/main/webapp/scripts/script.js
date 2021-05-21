@@ -1,7 +1,8 @@
 function validate() {
-    let message = '* - обязательные для заполнения поля'
+    let message = 'Введите описание задачи или добавьте категорию'
     let description = $('#description').val();
-    if (description === '') {
+    let category = $('#cIds').val();
+    if (description === '' || category === '') {
         alert(message);
         return false;
     }
@@ -17,9 +18,14 @@ $(document).ready(function () {
     req.done(function (data) {
         let items = ""
         for (let i = 0; i < data.length; i++) {
+            let category = ""
+            for (let j = 0; j < data[i]["categories"].length; j++ ) {
+                category += data[i]["categories"][j]["name"] + " ";
+            }
             items += "<tr>"
                 + "<td>" + data[i]["id"] + "</td>"
                 + "<td>" + data[i]["description"] + "</td>"
+                + "<td>" + category + "</td>"
                 + "<td>" + data[i]["created"] + "</td>"
                 + "<td>" + "Необходимо выполнить  "
                 + "<input type='checkbox' id='setStatus' value=" + data[i]["id"] + ">"
@@ -27,20 +33,7 @@ $(document).ready(function () {
                 + "</tr>"
         }
         $('#items').html(items);
-        $('input:checked:not(:disabled)').each(function () {
-            for (let i = 0; i < data.length; i++) {
-                $('#items').append(
-                    "<tr>"
-                    + "<td>" + data[i]["description"] + "</td>"
-                    + "<td>" + data[i]["created"] + "</td>"
-                    + "<td>" + "Выполнено  "
-                    + "<input disabled type='checkbox' id='setStatus' checked value=" + data[i]["id"] + ">"
-                    + "</td>"
-                    + "</tr>");
-            }
-        });
     });
-    $('#items').html(items);
 })
 
 function addItem() {
@@ -48,7 +41,7 @@ function addItem() {
         $.ajax({
                 method: 'POST',
                 url: './add',
-                data: {desc: $("#description").val()},
+                data: {desc: $("#description").val(), categoryIds: $('#cIds').val().join(",")},
                 dataType: 'json'
             }
         );
@@ -91,9 +84,14 @@ function showAll() {
         req.done(function (data) {
             let items = ""
             for (let i = 0; i < data.length; i++) {
+                let category = ""
+                for (let j = 0; j < data[i]["categories"].length; j++ ) {
+                    category += data[i]["categories"][j]["name"] + " ";
+                }
                 items += "<tr>"
                     + "<td>" + data[i]["id"] + "</td>"
                     + "<td>" + data[i]["description"] + "</td>"
+                    + "<td>" + category + "</td>"
                     + "<td>" + data[i]["created"] + "</td>"
                     + "<td>" + data[i]["done"] + "</td>"
                     + "</td>"

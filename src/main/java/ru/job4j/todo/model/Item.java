@@ -2,7 +2,9 @@ package ru.job4j.todo.model;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -14,6 +16,9 @@ public class Item {
     private String description;
     private Timestamp created;
     private boolean done;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "category_id")
+    private List<Category> categories = new ArrayList<>();
 
     public Item() {
     }
@@ -55,6 +60,10 @@ public class Item {
         this.done = done;
     }
 
+    public void addCategory(Category category) {
+        categories.add(category);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -70,5 +79,12 @@ public class Item {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "Item: id=%s, description=%s, created=%s, categories=%s, done=%s,",
+                id, description, created, categories, done);
     }
 }

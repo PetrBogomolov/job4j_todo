@@ -20,6 +20,10 @@
     <servlet-name>ItemDoneServlet</servlet-name>
     <servlet-class>ru.job4j.todo.servlets.ItemDoneServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>ShowCategories</servlet-name>
+    <servlet-class>ru.job4j.todo.servlets.ShowCategories</servlet-class>
+  </servlet>
 
   <servlet-mapping>
     <servlet-name>AddItemServlet</servlet-name>
@@ -36,5 +40,9 @@
   <servlet-mapping>
     <servlet-name>ItemDoneServlet</servlet-name>
     <url-pattern>/done</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>ShowCategories</servlet-name>
+    <url-pattern>/categories</url-pattern>
   </servlet-mapping>
 </web-app>

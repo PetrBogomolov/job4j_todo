@@ -6,7 +6,10 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import ru.job4j.todo.model.Category;
 import ru.job4j.todo.model.Item;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -23,8 +26,14 @@ public class HibernateStore implements Store {
     }
 
     @Override
-    public void addItem(Item item) {
-        transaction(session -> session.save(item));
+    public void addItem(Item item, String[] categories) {
+        transaction(session -> {
+            for (String id : categories) {
+                item.addCategory(session.load(Category.class, Integer.parseInt(id)));
+            }
+            session.save(item);
+            return null;
+        });
     }
 
     @Override
@@ -40,12 +49,29 @@ public class HibernateStore implements Store {
 
     @Override
     public List<Item> getAllItems() {
-        return (List<Item>) transaction(session -> session.createQuery("from Item").list());
+        return transaction(session -> {
+            List<Item> items;
+            items = session.createQuery(
+                    "select distinct i from Item i join fetch i.categories"
+            ).list();
+            return items;
+        });
     }
 
     @Override
     public List<Item> getAllNotDoneItems() {
-        return (List<Item>) transaction(session -> session.createQuery("from Item i where i.done = false").list());
+        return  transaction(session -> {
+            List<Item> items;
+            items = session.createQuery(
+                    "select distinct i from Item i join fetch i.categories where i.done = false"
+            ).list();
+            return items;
+        });
+    }
+
+    @Override
+    public List<Category> getAllCategories() {
+        return (List<Category>) transaction(session -> session.createQuery("from Category").list());
     }
 
     private <T> T transaction(final Function<Session, T> command) {
