@@ -14,7 +14,8 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String description;
-    private Timestamp created;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date created;
     private boolean done;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "category_id")
@@ -25,7 +26,7 @@ public class Item {
 
     public Item(String description) {
         this.description = description;
-        created = new Timestamp(new Date().getTime());
+        created = new Date(System.currentTimeMillis());
     }
 
     public int getId() {
@@ -44,7 +45,7 @@ public class Item {
         this.description = description;
     }
 
-    public Timestamp getCreated() {
+    public Date getCreated() {
         return created;
     }
 
