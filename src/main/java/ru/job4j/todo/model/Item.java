@@ -1,7 +1,6 @@
 package ru.job4j.todo.model;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +16,9 @@ public class Item {
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
     private boolean done;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "category_id")
     private List<Category> categories = new ArrayList<>();
@@ -49,7 +51,7 @@ public class Item {
         return created;
     }
 
-    public void setCreated(Timestamp created) {
+    public void setCreated(Date created) {
         this.created = created;
     }
 
@@ -59,6 +61,22 @@ public class Item {
 
     public void setDone(boolean done) {
         this.done = done;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<Category> categories) {
+        this.categories = categories;
     }
 
     public void addCategory(Category category) {
@@ -85,7 +103,7 @@ public class Item {
     @Override
     public String toString() {
         return String.format(
-                "Item: id=%s, description=%s, created=%s, categories=%s, done=%s,",
-                id, description, created, categories, done);
+                "Item: id=%s, description=%s, created=%s, categories=%s, user=%s, done=%s,",
+                id, description, created, categories, user, done);
     }
 }

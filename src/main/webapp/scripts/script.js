@@ -10,6 +10,11 @@ function validate() {
 }
 
 $(document).ready(function () {
+    showFilterItems();
+    showAuthUser();
+})
+
+function showFilterItems() {
     const req = $.ajax({
         type: "POST",
         url: './showFilter',
@@ -27,6 +32,7 @@ $(document).ready(function () {
                 + "<td>" + data[i]["description"] + "</td>"
                 + "<td>" + category + "</td>"
                 + "<td>" + data[i]["created"] + "</td>"
+                + "<td>" + data[i]['user']['name'] + "</td>"
                 + "<td>" + "Необходимо выполнить  "
                 + "<input type='checkbox' id='setStatus' value=" + data[i]["id"] + ">"
                 + "</td>"
@@ -34,13 +40,26 @@ $(document).ready(function () {
         }
         $('#items').html(items);
     });
-})
+}
+
+
+function showAuthUser() {
+    const req = $.ajax({
+        type: "GET",
+        url: './getAuthUser',
+        dataType: "json"
+    })
+    req.done(function (data) {
+        let user = data['user']['name']
+        $('#authUser').html(user);
+    });
+}
 
 function addItem() {
     if (validate()) {
         $.ajax({
                 method: 'POST',
-                url: './add',
+                url: './add.do',
                 data: {desc: $("#description").val(), categoryIds: $('#cIds').val().join(",")},
                 dataType: 'json'
             }
@@ -63,7 +82,7 @@ function markAsDone() {
         for (let i = 0; i < selectedValues.length; i++) {
             $.ajax({
                 method: 'POST',
-                url: './done',
+                url: './done.do',
                 data: {id: selectedValues[i]},
                 dataType: 'json'
             });
@@ -93,6 +112,7 @@ function showAll() {
                     + "<td>" + data[i]["description"] + "</td>"
                     + "<td>" + category + "</td>"
                     + "<td>" + data[i]["created"] + "</td>"
+                    + "<td>" + data[i]["user"]["name"] + "</td>"
                     + "<td>" + data[i]["done"] + "</td>"
                     + "</td>"
                     + "</tr>"

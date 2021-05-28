@@ -8,8 +8,7 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import ru.job4j.todo.model.Category;
 import ru.job4j.todo.model.Item;
-
-import java.util.ArrayList;
+import ru.job4j.todo.model.User;
 import java.util.List;
 import java.util.function.Function;
 
@@ -26,13 +25,37 @@ public class HibernateStore implements Store {
     }
 
     @Override
-    public void addItem(Item item, String[] categories) {
+    public void addItem(Item item, String[] categories, String userId) {
         transaction(session -> {
+            item.setUser(session.load(User.class, Integer.parseInt(userId)));
             for (String id : categories) {
                 item.addCategory(session.load(Category.class, Integer.parseInt(id)));
             }
             session.save(item);
             return null;
+        });
+    }
+
+    @Override
+    public User addUser(User user) {
+        return transaction(session -> {
+            User db = findUserByLogin(user.getLogin());
+            if (db == null) {
+                session.save(user);
+                return user;
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public User findUserByLogin(String login) {
+      return transaction(session -> {
+            User user;
+            user = (User) session.createQuery("from User u where u.login = :login")
+                    .setParameter("login", login)
+                    .uniqueResult();
+            return user;
         });
     }
 
@@ -52,7 +75,7 @@ public class HibernateStore implements Store {
         return transaction(session -> {
             List<Item> items;
             items = session.createQuery(
-                    "select distinct i from Item i join fetch i.categories"
+                    "select distinct i from Item i join fetch i.categories join fetch i.user"
             ).list();
             return items;
         });
@@ -63,7 +86,8 @@ public class HibernateStore implements Store {
         return  transaction(session -> {
             List<Item> items;
             items = session.createQuery(
-                    "select distinct i from Item i join fetch i.categories where i.done = false"
+                    "select distinct i from Item i join fetch i.categories join fetch i.user "
+                           + "where i.done = false"
             ).list();
             return items;
         });

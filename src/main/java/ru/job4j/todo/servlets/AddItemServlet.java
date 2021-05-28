@@ -1,6 +1,7 @@
 package ru.job4j.todo.servlets;
 
 import ru.job4j.todo.model.Item;
+import ru.job4j.todo.model.User;
 import ru.job4j.todo.stores.HibernateStore;
 
 import javax.servlet.ServletException;
@@ -15,6 +16,7 @@ public class AddItemServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         String[] categoriesId = req.getParameter("categoryIds").split(",");
-        HibernateStore.instOf().addItem(new Item(req.getParameter("desc")), categoriesId);
+        User user = (User) req.getSession().getAttribute("user");
+        HibernateStore.instOf().addItem(new Item(req.getParameter("desc")), categoriesId, String.valueOf(user.getId()));
     }
 }
